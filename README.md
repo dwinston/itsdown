@@ -17,6 +17,8 @@ the email.
 git clone git@github.com:dwinston/itsdown.git
 cd itsdown
 pip install -e .
+cp itsdown/config.example.ini itsdown/config.ini
+# Edit itsdown/config.ini to reflect your email service SMTP information.
 ```
 
 # Usage Example
