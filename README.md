@@ -27,3 +27,34 @@ python itsdown/main.py \
     --fn "itsdown.functions.fwsdash_24hr" \
     --to dwinston@lbl.gov
 ```
+
+## Advanced installation
+
+In addition to the above, you can use [Celery](http://www.celeryproject.org/) to run reports in a crontab-like manner.
+
+You'll need to install [RabbitMQ](https://www.rabbitmq.com/) (Celery's recommended so-called "data broker"):
+```
+# Ubuntu/Debian?
+sudo apt-get install rabbitmq-server
+# Docker?
+docker run -d -p 5462:5462 rabbitmq
+# Homebrew?
+brew install rabbitmq
+```
+
+# Usage Example
+
+Start the RabbitMQ server:
+
+```
+# For example, if you use `brew install` on a Mac, this will ensure rabbitmq starts now and on system restarts.
+brew services start rabbitmq
+```
+
+Start the Celery server:
+
+```
+celery -A itsdown worker -l info
+```
+
+(Under construction) Use `celery.schedules.crontab` to do great things! 
