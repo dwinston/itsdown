@@ -1,42 +1,60 @@
 import argparse
-import sys
-from functools import partial
 import re
+import sys
 
-from bs4 import BeautifulSoup
-import pdfkit
-import requests
-
-from itsdown.send_email import send_email
-
+from celery.schedules import crontab
+from itsdown.tasks import app, check_page
 
 if __name__ == "__main__":
-	parser = argparse.ArgumentParser(description='Evaluate if it is down.')
-	parser.add_argument('--url', type=str, help='The page of interest', default=argparse.SUPPRESS)
-	parser.add_argument('--fn', type=str, help='Dotted path to function to evaluate URL', default=argparse.SUPPRESS)
-	parser.add_argument('--to', type=str, help='Email address to send report, if any', default=argparse.SUPPRESS)
-	args = parser.parse_args()
+    parser = argparse.ArgumentParser(description="Evaluate if it is down.")
+    parser.add_argument(
+        "--url", type=str, help="The page of interest", default=argparse.SUPPRESS
+    )
+    parser.add_argument(
+        "--fn",
+        type=str,
+        help="Dotted path to function to evaluate URL",
+        default=argparse.SUPPRESS,
+    )
+    parser.add_argument(
+        "--to",
+        type=str,
+        help="Email address to send report, if any",
+        default=argparse.SUPPRESS,
+    )
+    parser.add_argument(
+        "--cron-expr", type=str, help='Cron expression, e.g. "0 13 * * 1"', default=None
+    )
+    args = parser.parse_args()
 
-	rv = requests.get(args.url)
-	page_as_string = rv.text
-	print("Generating snapshot PDF of page in case problematic status is found...")
-	snapshot_pdf = pdfkit.from_url(args.url, False, options={"quiet": True})
-	print(f"Done generating PDF. Analyzing page content with {args.fn}...")
-	soup = BeautifulSoup(page_as_string, "html.parser")
-	mod_name, fn_name = re.match(r"(.+)\.(.+)", args.fn).groups()
-	mod = __import__(mod_name, globals(), locals(), [fn_name], 0)
+    url, fn_path, to, cron_expr = args.url, args.fn, args.to, args.cron_expr
+    mod_path, fn_name = re.match(r"(.+)\.(.+)", fn_path).groups()
+    mod = __import__(mod_path, globals(), locals(), [fn_name], 0)
 
-	if not hasattr(mod, fn_name):
-		print(f"can't find function {fn_name} in module {fn_name}")
-		sys.exit(1)
+    if not hasattr(mod, fn_name):
+        print(f"can't find function {fn_name} in module {fn_name}")
+        sys.exit(1)
 
-	fn = getattr(mod, fn_name)
-	status = fn(soup)
-	if status is None:
-		print("No problematic status")
-		sys.exit(0)
+    fn = getattr(mod, fn_name)
 
-	print(f"Problematic status: '{status}'. Sending report to {args.to}...")
-	send_email(recipient=args.to, url=args.url, status=status, attachment=snapshot_pdf)
-
-
+    if args.cron_expr:
+        print("Scheduling...")
+        minute, hour, day_of_month, month_of_year, day_of_week = (
+            args.cron_expr.strip().split()
+        )
+        schedule = crontab(
+            minute=minute,
+            hour=hour,
+            day_of_month=day_of_month,
+            month_of_year=month_of_year,
+            day_of_week=day_of_week,
+        )
+        app.add_periodic_task(schedule, check_page.s(url, fn, to))
+        print(app.conf.beat_schedule)
+        print(
+            f"Task scheduled! Will send report to {to} when problematic status is found."
+        )
+        print(app.conf.beat_schedule)
+    else:
+        print("Doing task now...")
+        check_page(url, fn, to)
