@@ -56,7 +56,7 @@ brew services start rabbitmq
 Start the Celery server:
 
 ```
-celery -A itsdown worker -l info
+celery -A itsdown.tasks worker -l info
 ```
 
 (Under construction) Use `celery.schedules.crontab` to do great things! 
