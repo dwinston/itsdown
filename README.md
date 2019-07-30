@@ -21,6 +21,17 @@ cp itsdown/config.example.ini itsdown/config.ini
 # Edit itsdown/config.ini to reflect your email service SMTP information.
 ```
 
+You will also need to install [wkhtmltopdf](https://wkhtmltopdf.org/) 
+which is required for generating the
+PDF report that are emailed to specified recipients:
+```
+# Ubuntu/Debian?
+sudo apt-get install wkhtmltopdf
+
+# Homebrew
+brew install Caskroom/cask/wkhtmltopdf
+```
+
 # Usage Example
 
 ```bash
@@ -57,6 +68,16 @@ Start the Celery server:
 
 ```
 celery -A itsdown.tasks worker -l info
+```
+
+Schedule a periodic itsdown task with a 
+[crontab expression](https://www.adminschoice.com/crontab-quick-reference)
+```bash
+python itsdown/main.py \
+    --url "https://structpred.dash.materialsproject.org/report/hours/24/" \
+    --fn "itsdown.functions.fwsdash_24hr" \
+    --to tylerhuntington222@lbl.gov \
+    --cron-expr "* * * * *"
 ```
 
 (Under construction) Use `celery.schedules.crontab` to do great things! 
