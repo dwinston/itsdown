@@ -27,36 +27,16 @@ cp itsdown/config.example.ini itsdown/config.ini
 python itsdown/main.py \
     --url "https://structpred.dash.materialsproject.org/report/hours/24/" \
     --fn "itsdown.functions.fwsdash_24hr" \
-    --to dwinston@lbl.gov
+    --to dwinston@lbl.gov \
+    --cron-expr "0 13 * * *"
 ```
+###<i>Note</i>
 
-## Advanced installation
+Crontab will not work if you have the normal crontab library installed. Please create a new environment or uninstall the normal crontab
+and download the python-crontab. Please check the documentation right [here.](https://pypi.org/project/python-crontab/)
 
-In addition to the above, you can use [Celery](http://www.celeryproject.org/) to run reports in a crontab-like manner.
+###Update
 
-You'll need to install [RabbitMQ](https://www.rabbitmq.com/) (Celery's recommended so-called "data broker"):
-```
-# Ubuntu/Debian?
-sudo apt-get install rabbitmq-server
-# Docker?
-docker run -d -p 5462:5462 rabbitmq
-# Homebrew?
-brew install rabbitmq
-```
-
-# Usage Example
-
-Start the RabbitMQ server:
-
-```
-# For example, if you use `brew install` on a Mac, this will ensure rabbitmq starts now and on system restarts.
-brew services start rabbitmq
-```
-
-Start the Celery server:
-
-```
-celery -A itsdown.tasks worker -l info
-```
-
-(Under construction) Use `celery.schedules.crontab` to do great things! 
+We removed the Celery and RabbitMQ for scheduling and instead use the python-crontab library.
+One reason is because it is harder to setup. In most cases Celery and RabbitMQ
+offers a lot more, though those features aren't needed in this type of application.

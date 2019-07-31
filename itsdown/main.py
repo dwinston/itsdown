@@ -1,11 +1,17 @@
 import argparse
 import re
 import sys
-
-from celery.schedules import crontab
-from itsdown.tasks import app, check_page
+from tasks import check_page
+from crontab import CronTab
+import os ; import subprocess
+dirpath = os.getcwd()
+dirpath = dirpath.replace("itsdown/itsdown", "itsdown")
+pypath = subprocess.Popen(['which','python'],stdout = subprocess.PIPE).communicate()[0].decode('ascii')
+pypath = pypath.replace("/python", "")
 
 if __name__ == "__main__":
+    cron = CronTab(user=True)
+
     parser = argparse.ArgumentParser(description="Evaluate if it is down.")
     parser.add_argument(
         "--url", type=str, help="The page of interest", default=argparse.SUPPRESS
@@ -36,25 +42,22 @@ if __name__ == "__main__":
         sys.exit(1)
 
     fn = getattr(mod, fn_name)
-
     if args.cron_expr:
         print("Scheduling...")
-        minute, hour, day_of_month, month_of_year, day_of_week = (
-            args.cron_expr.strip().split()
-        )
-        schedule = crontab(
-            minute=minute,
-            hour=hour,
-            day_of_month=day_of_month,
-            month_of_year=month_of_year,
-            day_of_week=day_of_week,
-        )
-        app.add_periodic_task(schedule, check_page.s(url, fn, to))
-        print(app.conf.beat_schedule)
+        #TODO make the python path dynamic
+        sched=str(args.cron_expr).strip()
+        job = cron.new(
+            command=f'cd {dirpath}/itsdown/ && /Users/destrada/miniconda3/envs/itsdown/bin/python '
+                    f'{dirpath}/itsdown/tasks.py {url} "{fn}" {to} >> {dirpath}/itsdown/printed_out.log')
+        # >> {dirpath} / itsdown / printed_out.log
+        # job.setall(sched)
+        job.minute.every(1)
         print(
             f"Task scheduled! Will send report to {to} when problematic status is found."
         )
-        print(app.conf.beat_schedule)
+        job.run()
+        cron.write()
+
     else:
         print("Doing task now...")
         check_page(url, fn, to)
