@@ -6,9 +6,9 @@ from crontab import CronTab
 import os ; import subprocess
 dirpath = os.getcwd()
 dirpath = dirpath.replace("itsdown/itsdown", "itsdown")
-pypath = subprocess.Popen(['which','python'],stdout = subprocess.PIPE).communicate()[0].decode('ascii')
-pypath = pypath.replace("/python", "")
-
+# pypath = subprocess.Popen(['which','python'],stdout = subprocess.PIPE).communicate()[0].decode('ascii')
+# pypath = pypath.replace("/python", "")
+pypath = "/Users/destrada/miniconda3/envs/itsdown/bin/python"
 if __name__ == "__main__":
     cron = CronTab(user=True)
 
@@ -47,7 +47,7 @@ if __name__ == "__main__":
         #TODO make the python path dynamic
         sched=str(args.cron_expr).strip()
         job = cron.new(
-            command=f'cd {dirpath}/itsdown/ && /Users/destrada/miniconda3/envs/itsdown/bin/python '
+            command=f'cd {dirpath}/itsdown/ && {pypath} '
                     f'{dirpath}/itsdown/tasks.py {url} "{fn}" {to} >> {dirpath}/itsdown/printed_out.log')
         # >> {dirpath} / itsdown / printed_out.log
         # job.setall(sched)
