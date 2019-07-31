@@ -3,11 +3,17 @@ from redbeat import RedBeatSchedulerEntry, RedBeatScheduler
 
 def main():
 
-    s = RedBeatScheduler(app=tasks.app, lock_key='redbeat:lock')
-    print(s.schedule)
-    print(tasks.app.conf)
+    print('RedBeat schedule before clearing:')
+    print(tasks.scheduler.schedule)
+    keys = list(tasks.scheduler.schedule.keys())
+    print(keys)
+    if keys:
+        for k in keys:
+            print(f'Removing task: {k}')
+            RedBeatSchedulerEntry(k, app=tasks.app).delete()
 
-    # entry = RedBeatSchedulerEntry(k, app=tasks.app).delete()
+    print('RedBeat schedule after clearing:')
+    print(tasks.scheduler.schedule)
 
 
 

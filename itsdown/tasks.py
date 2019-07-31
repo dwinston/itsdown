@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 import pdfkit
 import requests
 from celery import Celery
+from redbeat import RedBeatScheduler
 import itsdown.celeryconfig
 from celery.schedules import crontab
 
@@ -12,11 +13,7 @@ app = Celery(
     'itsdown',
 )
 app.config_from_object('celeryconfig')
-
-# Optional configuration, see the application user guide.
-# app.conf.update(
-#     result_expires=3600,
-# )
+scheduler = RedBeatScheduler(app=app)
 
 @app.task()
 def check_page(url, mod_path, fn_name, to):
@@ -24,6 +21,8 @@ def check_page(url, mod_path, fn_name, to):
     if not hasattr(mod, fn_name):
         print(f"can't find function {fn_name} in module {fn_name}")
         sys.exit(1)
+    # temp
+    fn_name = 'test_page_content'
     fn = getattr(mod, fn_name)
     rv = requests.get(url)
     page_as_string = rv.text
@@ -32,7 +31,7 @@ def check_page(url, mod_path, fn_name, to):
     print(f"Done generating PDF. Analyzing page content with {fn}...")
     soup = BeautifulSoup(page_as_string, "html.parser")
     status = fn(soup)
-    if not status is None:
+    if status is None:
         print("No problematic status")
         return {"problematic_status": False}
 
