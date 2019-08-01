@@ -8,9 +8,14 @@ from email import encoders
 from itsdown import mail_config_path
 
 config = configparser.ConfigParser()
-if os.path(mail_config_path):
+if mail_config_path.exists():
     config.read(mail_config_path)
-    email_config = config["EMAIL"]
+    try:
+        email_config = config["EMAIL"]
+    except KeyError as e:
+        print('Email config file not set up correctly!')
+else:
+    raise Exception('No email config file exists!')
 
 
 def send_email(recipient, url, status, attachment):
