@@ -35,7 +35,7 @@ brew install Caskroom/cask/wkhtmltopdf
 # Usage Example
 
 ```bash
-python itsdown/main.py \
+python main.py \
     --url "https://structpred.dash.materialsproject.org/report/hours/24/" \
     --fn "itsdown.functions.fwsdash_24hr" \
     --to dwinston@lbl.gov
@@ -86,7 +86,7 @@ python itsdown/app.py
 Schedule a periodic itsdown task with a 
 [crontab expression](https://www.adminschoice.com/crontab-quick-reference)
 ```bash
-python itsdown/main.py \
+python itsdown.py \
     --url "https://structpred.dash.materialsproject.org/report/hours/24/" \
     --fn "itsdown.functions.fwsdash_24hr" \
     --to tylerhuntington222@lbl.gov \
