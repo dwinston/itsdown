@@ -5,11 +5,17 @@ from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
 
-from itsdown import config_path
+from itsdown import mail_config_path
 
 config = configparser.ConfigParser()
-config.read(config_path)
-email_config = config["EMAIL"]
+if mail_config_path.exists():
+    config.read(mail_config_path)
+    try:
+        email_config = config["EMAIL"]
+    except KeyError as e:
+        print('Email config file not set up correctly!')
+else:
+    raise Exception('No email config file exists!')
 
 
 def send_email(recipient, url, status, attachment):

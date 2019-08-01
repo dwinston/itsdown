@@ -19,3 +19,8 @@ def fwsdash_24hr(soup, threshold_pct=0):
 fwsdash_24hr_10 = partial(fwsdash_24hr, threshold_pct=10)
 fwsdash_24hr_50 = partial(fwsdash_24hr, threshold_pct=50)
 fwsdash_24hr_100 = partial(fwsdash_24hr, threshold_pct=100)
+
+def test_page_content(soup):
+    return(soup)
+
+

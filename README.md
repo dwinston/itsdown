@@ -16,15 +16,27 @@ the email.
 ```bash
 git clone git@github.com:dwinston/itsdown.git
 cd itsdown
+pip install -r requirements
 pip install -e .
-cp itsdown/config.example.ini itsdown/config.ini
+cp itsdown/email_config.example.ini itsdown/email_config.ini
 # Edit itsdown/config.ini to reflect your email service SMTP information.
+```
+
+You will also need to install [wkhtmltopdf](https://wkhtmltopdf.org/) 
+which is required for generating the
+PDF report that are emailed to specified recipients:
+```
+# Ubuntu/Debian?
+sudo apt-get install wkhtmltopdf
+
+# Homebrew
+brew install Caskroom/cask/wkhtmltopdf
 ```
 
 # Usage Example
 
 ```bash
-python itsdown/main.py \
+python main.py \
     --url "https://structpred.dash.materialsproject.org/report/hours/24/" \
     --fn "itsdown.functions.fwsdash_24hr" \
     --to dwinston@lbl.gov
@@ -32,31 +44,56 @@ python itsdown/main.py \
 
 ## Advanced installation
 
-In addition to the above, you can use [Celery](http://www.celeryproject.org/) to run reports in a crontab-like manner.
+In addition to the above, you can use [Celery](http://www.celeryproject.org/) 
+to run reports in a crontab-like manner.
 
-You'll need to install [RabbitMQ](https://www.rabbitmq.com/) (Celery's recommended so-called "data broker"):
+You'll need to install [Redis](https://redis.io/) which will serve as Celery's 
+so-called "data broker":
+
+```bash
+wget http://download.redis.io/redis-stable.tar.gz
+jtar xvzf redis-stable.tar.gz
+cd redis-stable
+make
 ```
-# Ubuntu/Debian?
-sudo apt-get install rabbitmq-server
-# Docker?
-docker run -d -p 5462:5462 rabbitmq
-# Homebrew?
-brew install rabbitmq
-```
+
 
 # Usage Example
 
-Start the RabbitMQ server:
+Start the Redis  server:
 
-```
-# For example, if you use `brew install` on a Mac, this will ensure rabbitmq starts now and on system restarts.
-brew services start rabbitmq
+```bash
+redis-server
 ```
 
-Start the Celery server:
+Start the Celery worker server:
 
-```
+```bash
 celery -A itsdown.tasks worker -l info
 ```
 
-(Under construction) Use `celery.schedules.crontab` to do great things! 
+Start the Celery Beat scheduler server:
+
+```bash
+celery beat -A itsdown.tasks -l info
+```
+
+Start the Flask server:
+
+```bash
+python itsdown/app.py
+```
+
+Schedule a periodic itsdown task with a 
+[crontab expression](https://www.adminschoice.com/crontab-quick-reference)
+```bash
+python itsdown.py \
+    --url "https://structpred.dash.materialsproject.org/report/hours/24/" \
+    --fn "itsdown.functions.fwsdash_24hr" \
+    --to tylerhuntington222@lbl.gov \
+    --cron-expr "* * * * *"
+```
+The above command and crontab expression will schedule execution of the 
+`itsdown.functions.fwsdash_24hr()` every minute, sending status emails to 
+`tylerhuntington222@gmail.com`.
+

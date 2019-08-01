@@ -106,4 +106,4 @@ venv.bak/
 # PyCharm project settings
 .idea
 
-itsdown/config.ini
+itsdown/email_config.ini
