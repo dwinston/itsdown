@@ -5,7 +5,7 @@ from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
 
-from itsdown import config_path
+from itsdown import mail_config_path
 
 config = configparser.ConfigParser()
 config.read(config_path)

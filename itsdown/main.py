@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import time
 import argparse
 import re
@@ -5,6 +7,9 @@ import sys
 from celery.schedules import crontab
 from redbeat import RedBeatSchedulerEntry
 from itsdown import tasks
+from itsdown.celeryconfig import flask_url
+from urllib.parse import urlencode
+import requests
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Evaluate if it is down.")
@@ -34,55 +39,20 @@ if __name__ == "__main__":
 
 
     if args.cron_expr:
+        endpoint = 'add_periodic_task'
+        query_string = urlencode({
+            'url': url,
+            'to': to,
+            'cron_expr': cron_expr,
+            'mod_path': mod_path,
+            'fn_name': fn_name
+        })
+        req_url = f'http://{flask_url}/{endpoint}?{query_string}'
+        rv = requests.get(req_url)
+        print(rv)
         print("Scheduling...")
-        minute, hour, day_of_month, month_of_year, day_of_week = (
-            args.cron_expr.strip().split()
-        )
-
-        schedule = crontab(
-            minute=minute,
-            hour=hour,
-            day_of_month=day_of_month,
-            month_of_year=month_of_year,
-            day_of_week=day_of_week,
-        )
-        print('BEFORE')
-        print(tasks.scheduler.schedule)
-
-        entry = RedBeatSchedulerEntry('check_page', 'tasks.check_page',
-                                      schedule, args=[url, mod_path, fn_name, to],
-                                      app=tasks.app)
-
-        entry.save()
-
-        tasks.app.conf.beat_schedule['redbeat:task_1'] = {
-            "name": "interval example",
-            "task": "tasks.check_page",
-            "schedule": {
-                "__type__": "interval",
-                "every": 5,  # seconds
-            },
-            "args": [  # optional
-                "param1",
-            ]
-        }
-
-        print('Immediately after')
-        print(tasks.app.conf.beat_schedule)
-        print(tasks.scheduler.schedule)
-        for i in range(120):
-            time.sleep(1)
-            print(f'Seconds: {i}')
-            print(tasks.scheduler.schedule)
-            if 'check_page' in tasks.scheduler.schedule:
-                exit()
-        # print(entry.key)
-
-        # remove periodic task
-        # RedBeatSchedulerEntry('check_page', app=tasks.app).delete()
-
         print(
-            f"Task scheduled! Will send report to {to} "
+            f"Periodic task scheduled! Will send report to {to} "
             "when problematic status is found."
         )
 
