@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 import pdfkit
 import requests
 from celery import Celery
-import itsdown.celeryconfig
+import itsdown.config
 from redbeat import RedBeatSchedulerEntry
 from itsdown.itsdown_redbeat import ItsdownRedBeatScheduler
 
@@ -12,7 +12,7 @@ from itsdown.send_email import send_email
 celery_app = Celery(
     'itsdown',
 )
-celery_app.config_from_object(itsdown.celeryconfig)
+celery_app.config_from_object(itsdown.config)
 scheduler = ItsdownRedBeatScheduler(app=celery_app)
 
 @celery_app.task()

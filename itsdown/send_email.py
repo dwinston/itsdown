@@ -8,7 +8,7 @@ from email import encoders
 from itsdown import mail_config_path
 
 config = configparser.ConfigParser()
-config.read(config_path)
+config.read(mail_config_path)
 email_config = config["EMAIL"]
 
 

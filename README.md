@@ -43,31 +43,44 @@ python itsdown/main.py \
 
 ## Advanced installation
 
-In addition to the above, you can use [Celery](http://www.celeryproject.org/) to run reports in a crontab-like manner.
+In addition to the above, you can use [Celery](http://www.celeryproject.org/) 
+to run reports in a crontab-like manner.
 
-You'll need to install [RabbitMQ](https://www.rabbitmq.com/) (Celery's recommended so-called "data broker"):
+You'll need to install [Redis](https://redis.io/) which will serve as Celery's 
+so-called "data broker":
+
+```bash
+wget http://download.redis.io/redis-stable.tar.gz
+jtar xvzf redis-stable.tar.gz
+cd redis-stable
+make
 ```
-# Ubuntu/Debian?
-sudo apt-get install rabbitmq-server
-# Docker?
-docker run -d -p 5462:5462 rabbitmq
-# Homebrew?
-brew install rabbitmq
-```
+
 
 # Usage Example
 
-Start the RabbitMQ server:
+Start the Redis  server:
 
-```
-# For example, if you use `brew install` on a Mac, this will ensure rabbitmq starts now and on system restarts.
-brew services start rabbitmq
+```bash
+redis-server
 ```
 
-Start the Celery server:
+Start the Celery worker server:
 
-```
+```bash
 celery -A itsdown.tasks worker -l info
+```
+
+Start the Celery Beat scheduler server:
+
+```bash
+celery beat -A itsdown.tasks -l info
+```
+
+Start the Flask server:
+
+```bash
+python itsdown/app.py
 ```
 
 Schedule a periodic itsdown task with a 
@@ -79,5 +92,7 @@ python itsdown/main.py \
     --to tylerhuntington222@lbl.gov \
     --cron-expr "* * * * *"
 ```
+The above command and crontab expression will schedule execution of the 
+`itsdown.functions.fwsdash_24hr()` every minute, sending status emails to 
+`tylerhuntington222@gmail.com`.
 
-(Under construction) Use `celery.schedules.crontab` to do great things! 

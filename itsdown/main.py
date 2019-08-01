@@ -7,7 +7,7 @@ import sys
 from celery.schedules import crontab
 from redbeat import RedBeatSchedulerEntry
 from itsdown import tasks
-from itsdown.celeryconfig import flask_url
+from itsdown.config import flask_url
 from urllib.parse import urlencode
 import requests
 
