@@ -1,4 +1,4 @@
-from itsdown import tasks
+import tasks
 from redbeat import RedBeatSchedulerEntry, RedBeatScheduler
 
 def main():
@@ -10,7 +10,7 @@ def main():
     if keys:
         for k in keys:
             print(f'Removing task: {k}')
-            RedBeatSchedulerEntry(k, app=tasks.app).delete()
+            RedBeatSchedulerEntry(k, app=tasks.celery_app).delete()
 
     print('RedBeat schedule after clearing:')
     print(tasks.scheduler.schedule)
